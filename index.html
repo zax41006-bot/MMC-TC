@@ -3,18 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>澳門氣象中心 | 熱帶氣旋資訊</title>
+    <title>澳門氣象中心 | 熱帶氣旋預報</title>
     
-    <!-- 引入 Tailwind CSS 用於排版 -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入 FontAwesome 用於圖示 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- 引入 Vue 3 (CDN) -->
     <script src="https://unpkg.com/vue@3.4.38/dist/vue.global.prod.js"></script>
 
     <style>
-        /* 自訂 CSS 樣式 */
-        [v-cloak] { display: none; } /* 防止 Vue 載入前畫面閃爍 */
+        [v-cloak] { display: none; }
         body { background-color: #f3f4f6; font-family: "Microsoft JhengHei", "PingFang TC", sans-serif; }
         
         .bulletin-hero { background: linear-gradient(135deg, #1565C0 0%, #0d47a1 100%); border-radius: 16px; padding: 1.5rem 2rem; color: #ffffff; box-shadow: 0 8px 20px rgba(21, 101, 192, 0.25); }
@@ -24,7 +20,6 @@
         .stat-label { font-size: 0.75rem; color: #6b7280; font-weight: 700; margin-bottom: 0.25rem; }
         .stat-value { font-size: 1.15rem; color: #1f2937; font-weight: 800; }
         
-        /* 強度標籤樣式 */
         .intensity-pill { display: inline-flex; padding: 0.3rem 0.8rem; border-radius: 9999px; font-weight: 800; color: #ffffff; }
         .intensity-TD { background-color: #9ca3af; } .intensity-TS { background-color: #22c55e; }
         .intensity-STS { background-color: #eab308; color: #1f2937; } .intensity-TY { background-color: #f97316; }
@@ -38,13 +33,11 @@
 </head>
 <body class="min-h-screen pb-20">
 
-<!-- Vue 掛載點 -->
 <div id="app" v-cloak>
     
-    <!-- 頁首與氣旋切換 -->
     <header class="flex flex-col items-center justify-center py-6 bg-white border-b-4 border-blue-700 shadow-sm mb-6">
         <h1 class="text-3xl font-black text-black">澳門氣象中心 MMC</h1>
-        <h2 class="text-xl font-bold text-blue-700 mt-2">熱帶氣旋資訊</h2>
+        <h2 class="text-xl font-bold text-blue-700 mt-2">熱帶氣旋預報</h2>
         
         <div class="mt-4 flex items-center gap-2" v-if="tcList.length > 0">
             <span class="font-bold text-gray-700">選擇氣旋：</span>
@@ -57,30 +50,25 @@
 
     <main class="max-w-5xl mx-auto p-4">
         
-        <!-- 載入中狀態 -->
         <div v-if="loading" class="text-center py-20 text-blue-600">
             <i class="fa fa-spinner fa-spin text-3xl mb-3"></i>
             <p class="font-bold">正在讀取氣旋數據與預報圖...</p>
         </div>
         
-        <!-- 錯誤狀態 -->
         <div v-else-if="error" class="bg-white border-2 border-red-500 p-6 text-center rounded-xl shadow-md">
             <i class="fa-solid fa-triangle-exclamation text-3xl text-red-500 mb-3"></i>
             <p class="text-gray-700 font-bold">{{ error }}</p>
             <button class="action-pill mt-4" @click="loadData"><i class="fa fa-rotate-right mr-1"></i>重新載入</button>
         </div>
 
-        <!-- 正常顯示狀態 -->
         <div v-else>
             
-            <!-- 當前氣旋資訊 -->
             <div class="bulletin-hero mb-6">
                 <div class="text-sm opacity-85">當前熱帶氣旋</div>
                 <div class="text-4xl font-black">{{ currentTcName }}</div>
                 <div class="mt-2 text-sm"><i class="fa-regular fa-clock mr-1"></i>{{ formatDateTime(currentData.datetime) }} 更新</div>
             </div>
 
-            <!-- 數據卡片 -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-8">
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fa-solid fa-location-dot"></i></div>
@@ -106,9 +94,8 @@
                 </div>
             </div>
 
-            <!-- 預報圖顯示 -->
             <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6 mb-8">
-                <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-map-location-dot text-blue-600 mr-2"></i>路徑預報圖</h3>
+                <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-map-location-dot text-blue-600 mr-2"></i>最新路徑預報圖</h3>
                 <div class="relative w-full flex justify-center bg-gray-50 rounded-lg border border-gray-100 min-h-[300px]">
                     <img :src="plotImageSrc" class="max-w-full h-auto" @load="imgLoaded = true" @error="imgError = true" v-show="!imgError && imgLoaded">
                     <div v-if="imgError" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
@@ -121,9 +108,8 @@
                 </div>
             </div>
 
-            <!-- 預報數據表格 -->
             <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6">
-                <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-table-list text-blue-600 mr-2"></i>預報詳細資訊</h3>
+                <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-table-list text-blue-600 mr-2"></i>預報詳細數據</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-center border-collapse">
                         <thead>
@@ -132,9 +118,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- 🌟 這裡改成 filteredForecastData -->
                             <tr v-for="(f, index) in filteredForecastData" :key="index" class="hover:bg-blue-50">
-                                <!-- 🌟 這裡改成顯示計算後的時間 f.displayTime -->
                                 <td class="p-3 border-b font-bold">{{ f.displayTime }}</td>
                                 <td class="p-3 border-b text-sm">北緯 {{ f.lat }} 度，東經 {{ f.lng }} 度</td>
                                 <td class="p-3 border-b"><span class="intensity-pill text-xs" :class="'intensity-' + f.intensity">{{ intensityName(f.intensity) }}</span></td>
@@ -150,7 +134,6 @@
             </div>
         </div>
 
-        <!-- 🌟 新增：回到主頁按鈕 -->
         <div class="mt-10 mb-4 text-center">
             <a href="https://zax41006-bot.github.io/moweather2021/" class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-blue-600 text-blue-700 font-bold rounded-full hover:bg-blue-50 transition-colors shadow-sm">
                 <i class="fa-solid fa-house"></i> 回到主頁
@@ -160,7 +143,6 @@
     </main>
 </div>
 
-<!-- Vue 邏輯腳本 -->
 <script>
     const { createApp } = Vue;
     const SITE_BASE_URL = "https://zax41006-bot.github.io/TC-Track";
@@ -186,14 +168,17 @@
                 const tc = this.tcList.find(t => t.id === this.currentTcId);
                 return tc ? tc.name : '';
             },
-            // 🌟 過濾時數並轉換時間格式
+            // 🌟 從 JSON 中動態讀取當前氣旋的 target_hours
+            targetHours() {
+                const tc = this.tcList.find(t => t.id === this.currentTcId);
+                return (tc && tc.target_hours) ? tc.target_hours : [24, 48, 72, 96, 120];
+            },
             filteredForecastData() {
                 if (!this.forecastData || this.forecastData.length === 0) return [];
                 
-                // 允許顯示的目標時數 (24, 48, 72, 96, 120)
-                const targetHours = [24, 48, 72, 96, 120];
+                // 使用從 JSON 讀取到的 targetHours
+                const allowedHours = this.targetHours;
                 
-                // 解析當前基準時間 (格式如 17/10/2026 20:00)
                 let baseDate = new Date();
                 if (this.currentData.datetime) {
                     const m = this.currentData.datetime.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
@@ -204,24 +189,22 @@
                 
                 return this.forecastData
                     .filter(f => {
-                        // 從 "24hr" 提取數字 24
                         const h = parseInt(f.f_time.replace('hr', ''));
-                        return targetHours.includes(h);
+                        return allowedHours.includes(h);
                     })
                     .map(f => {
                         const h = parseInt(f.f_time.replace('hr', ''));
-                        // 計算未來的時間
                         const fDate = new Date(baseDate.getTime() + h * 60 * 60 * 1000);
                         const fMonth = fDate.getMonth() + 1;
                         const fDay = fDate.getDate();
                         const fHour = String(fDate.getHours()).padStart(2, '0');
                         
-                        // 回傳新物件，附加 displayTime 屬性
                         return {
                             ...f,
                             displayTime: `${fMonth}月${fDay}日 ${fHour}時`
                         };
-                    });
+                    })
+                    .sort((a, b) => parseInt(a.f_time.replace('hr', '')) - parseInt(b.f_time.replace('hr', '')));
             }
         },
         
