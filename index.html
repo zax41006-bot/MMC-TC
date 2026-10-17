@@ -108,7 +108,7 @@
 
             <!-- 預報圖顯示 -->
             <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6 mb-8">
-                <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-map-location-dot text-blue-600 mr-2"></i>最新路徑預報圖</h3>
+                <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-map-location-dot text-blue-600 mr-2"></i>路徑預報圖</h3>
                 <div class="relative w-full flex justify-center bg-gray-50 rounded-lg border border-gray-100 min-h-[300px]">
                     <img :src="plotImageSrc" class="max-w-full h-auto" @load="imgLoaded = true" @error="imgError = true" v-show="!imgError && imgLoaded">
                     <div v-if="imgError" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
