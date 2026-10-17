@@ -4,7 +4,7 @@ import json
 import pandas as pd
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')  # 雲端無介面繪圖必備
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import cartopy.crs as ccrs
@@ -54,7 +54,16 @@ def calc_distance(lng1, lat1, lng2, lat2):
     raw_dist = R * c
     return int(round(raw_dist, -1))
 
-def draw_chart(tc_id, tc_name):
+def draw_chart(tc_data):
+    tc_id = tc_data['id']
+    tc_name = tc_data['name']
+    
+    # 🌟 從 JSON 讀取地圖範圍，如果沒寫則使用預設值
+    lon_min = tc_data.get('lon_min', 100.0)
+    lon_max = tc_data.get('lon_max', 180.0)
+    lat_min = tc_data.get('lat_min', 0.0)
+    lat_max = tc_data.get('lat_max', 60.0)
+    
     past_url = f"{SITE_BASE_URL}/past_track_{tc_id}.csv"
     forecast_csv = f"forecast_track_{tc_id}.csv"
     
@@ -77,13 +86,12 @@ def draw_chart(tc_id, tc_name):
 
         fig, ax = plt.subplots(figsize=(12, 11), subplot_kw={'projection': ccrs.PlateCarree()})
         
-        lon_min, lon_max = 100.0, 180.0
-        lat_min, lat_max = 0.0, 60.0
+        # 🌟 套用 JSON 設定的範圍
         ax.set_extent([lon_min, lon_max, lat_min, lat_max], crs=ccrs.PlateCarree())
+        
         ax.add_feature(cfeature.OCEAN, facecolor="#D0E8F5", zorder=0)
         ax.add_feature(cfeature.LAND, facecolor="#FAF0E6", edgecolor="none", zorder=1)
         
-        # 中國行政邊界
         china_land = NaturalEarthFeature(category='cultural', name='admin_0_countries', scale='10m', facecolor='none')
         ax.add_feature(china_land, facecolor='none', edgecolor='#A0A0A0', linewidth=0.5, zorder=2)
         
@@ -214,7 +222,6 @@ def draw_chart(tc_id, tc_name):
             
         leg_params = dict(loc='lower center', frameon=True, edgecolor='#CFD8DC', facecolor='white', framealpha=0.95)
         fig.legend(handles=leg_core, ncol=4, bbox_to_anchor=(0.5, 0.15), fontsize=12.0, prop={'weight':'bold'}, **leg_params)
-        # 🌟 動態調整圖例欄數，確保加入 EX 後依然能完美排版
         fig.legend(handles=leg_int, ncol=len(leg_int), bbox_to_anchor=(0.5, 0.10), fontsize=12.0, prop={'weight':'bold'}, **leg_params)
         
         plt.subplots_adjust(bottom=0.24, top=0.86)
@@ -238,7 +245,7 @@ if __name__ == "__main__":
         for tc in tc_list:
             if tc['id'] == target_id:
                 print(f"🎯 指定繪製單一氣旋: {tc['name']} ({tc['id']})")
-                draw_chart(tc['id'], tc['name'])
+                draw_chart(tc)
                 found = True
                 break
         if not found:
@@ -246,4 +253,4 @@ if __name__ == "__main__":
     else:
         print(f"🌐 準備繪製所有氣旋，共 {len(tc_list)} 個...")
         for tc in tc_list:
-            draw_chart(tc['id'], tc['name'])
+            draw_chart(tc)
