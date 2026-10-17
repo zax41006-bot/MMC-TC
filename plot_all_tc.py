@@ -58,11 +58,12 @@ def draw_chart(tc_data):
     tc_id = tc_data['id']
     tc_name = tc_data['name']
     
-    # 🌟 從 JSON 讀取地圖範圍，如果沒寫則使用預設值
+    # 🌟 從 JSON 讀取地圖範圍與時效，如果沒寫則使用預設值
     lon_min = tc_data.get('lon_min', 100.0)
     lon_max = tc_data.get('lon_max', 180.0)
     lat_min = tc_data.get('lat_min', 0.0)
     lat_max = tc_data.get('lat_max', 60.0)
+    target_hours = sorted(list(set(tc_data.get('target_hours', [24, 48, 72, 96, 120]))))
     
     past_url = f"{SITE_BASE_URL}/past_track_{tc_id}.csv"
     forecast_csv = f"forecast_track_{tc_id}.csv"
@@ -86,7 +87,7 @@ def draw_chart(tc_data):
 
         fig, ax = plt.subplots(figsize=(12, 11), subplot_kw={'projection': ccrs.PlateCarree()})
         
-        # 🌟 套用 JSON 設定的範圍
+        # 套用 JSON 設定的範圍
         ax.set_extent([lon_min, lon_max, lat_min, lat_max], crs=ccrs.PlateCarree())
         
         ax.add_feature(cfeature.OCEAN, facecolor="#D0E8F5", zorder=0)
@@ -157,7 +158,6 @@ def draw_chart(tc_data):
             ax.plot(xi, yi, color="#002a7d", lw=2.0, ls='--', zorder=4)
             
         # ================= 預報節點與文字 =================
-        target_hours = [24, 48, 72, 96, 120]
         for d in forecast_data:
             if d[4] not in target_hours: 
                 continue
@@ -186,7 +186,8 @@ def draw_chart(tc_data):
                 fontsize=10.0, fontweight='bold', color='#111111', 
                 bbox=dict(boxstyle="round,pad=0.5", fc="white", ec="#B0BEC5", alpha=0.92, lw=0.8), zorder=25)
                 
-        max_forecast_hr = max([d[4] for d in forecast_data]) if forecast_data else 0
+        max_forecast_hr = max(target_hours) if forecast_data else 0
+        
         fig.text(0.5, 0.950, f"熱帶氣旋「{tc_name}」路徑預報圖", ha='center', va='top', 
                  fontsize=20, fontweight='bold', color='#111111')
         
@@ -213,7 +214,6 @@ def draw_chart(tc_data):
             Line2D([0], [0], marker=tcmarkers.HU, c=INTENSITY_CONFIG["SUTY"]["color"], label='超強颱風', ms=9.0, mec='k', mew=0.7, ls=''),
         ]
         
-        # 🌟 動態偵測是否包含溫帶氣旋 (EX)
         has_ex = any(d[5] == "EX" for d in past_data) or any(d[6] == "EX" for d in forecast_data)
         if has_ex:
             leg_int.append(
