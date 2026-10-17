@@ -149,6 +149,14 @@
                 </div>
             </div>
         </div>
+
+        <!-- 🌟 新增：回到主頁按鈕 -->
+        <div class="mt-10 mb-4 text-center">
+            <a href="https://zax41006-bot.github.io/moweather2021/" class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-blue-600 text-blue-700 font-bold rounded-full hover:bg-blue-50 transition-colors shadow-sm">
+                <i class="fa-solid fa-house"></i> 回到主頁
+            </a>
+        </div>
+
     </main>
 </div>
 
@@ -178,7 +186,7 @@
                 const tc = this.tcList.find(t => t.id === this.currentTcId);
                 return tc ? tc.name : '';
             },
-            // 🌟 新增：過濾時數並轉換時間格式
+            // 🌟 過濾時數並轉換時間格式
             filteredForecastData() {
                 if (!this.forecastData || this.forecastData.length === 0) return [];
                 
