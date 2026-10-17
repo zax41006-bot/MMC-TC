@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>澳門氣象中心 | 熱帶氣旋預報</title>
+    <title>澳門氣象中心 | 熱帶氣旋資訊</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -37,7 +37,7 @@
     
     <header class="flex flex-col items-center justify-center py-6 bg-white border-b-4 border-blue-700 shadow-sm mb-6">
         <h1 class="text-3xl font-black text-black">澳門氣象中心 MMC</h1>
-        <h2 class="text-xl font-bold text-blue-700 mt-2">熱帶氣旋預報</h2>
+        <h2 class="text-xl font-bold text-blue-700 mt-2">熱帶氣旋資訊</h2>
         
         <div class="mt-4 flex items-center gap-2" v-if="tcList.length > 0">
             <span class="font-bold text-gray-700">選擇氣旋：</span>
@@ -95,7 +95,7 @@
             </div>
 
             <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6 mb-8">
-                <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-map-location-dot text-blue-600 mr-2"></i>最新路徑預報圖</h3>
+                <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-map-location-dot text-blue-600 mr-2"></i>路徑預報圖</h3>
                 <div class="relative w-full flex justify-center bg-gray-50 rounded-lg border border-gray-100 min-h-[300px]">
                     <img :src="plotImageSrc" class="max-w-full h-auto" @load="imgLoaded = true" @error="imgError = true" v-show="!imgError && imgLoaded">
                     <div v-if="imgError" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
@@ -109,7 +109,7 @@
             </div>
 
             <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6">
-                <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-table-list text-blue-600 mr-2"></i>預報詳細數據</h3>
+                <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-table-list text-blue-600 mr-2"></i>預報詳細資訊</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-center border-collapse">
                         <thead>
