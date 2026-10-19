@@ -20,12 +20,17 @@
         .stat-label { font-size: 0.75rem; color: #6b7280; font-weight: 700; margin-bottom: 0.25rem; }
         .stat-value { font-size: 1.15rem; color: #1f2937; font-weight: 800; }
         
+        /* 🌟 修改：強度標籤顏色，已完全對齊 Python 繪圖的色碼 */
         .intensity-pill { display: inline-flex; padding: 0.3rem 0.8rem; border-radius: 9999px; font-weight: 800; color: #ffffff; }
-        .intensity-TD { background-color: #9ca3af; } .intensity-TS { background-color: #22c55e; }
-        .intensity-STS { background-color: #eab308; color: #1f2937; } .intensity-TY { background-color: #f97316; }
-        .intensity-STY { background-color: #dc2626; } .intensity-SUTY { background-color: #7c3aed; }
-        .intensity-LPA { background-color: #A0A0A0; } .intensity-MD { background-color: #A0A0A0; }
-        .intensity-EX { background-color: #8D8D8D; color: #ffffff; }
+        .intensity-TD { background-color: #FAD02C; color: #1f2937; } /* 黃色 (加上深色字體) */
+        .intensity-TS { background-color: #0072C6; } /* 藍色 */
+        .intensity-STS { background-color: #00A651; } /* 綠色 */
+        .intensity-TY { background-color: #FF9900; } /* 橙色 */
+        .intensity-STY { background-color: #E60012; } /* 紅色 */
+        .intensity-SUTY { background-color: #7B1FA2; } /* 紫色 */
+        .intensity-LPA { background-color: #A0A0A0; } /* 灰色 */
+        .intensity-MD { background-color: #A0A0A0; } /* 灰色 */
+        .intensity-EX { background-color: #8D8D8D; color: #ffffff; } /* 深灰色 */
         
         .action-pill { display: inline-flex; align-items: center; padding: 0.65rem 1.4rem; border-radius: 9999px; font-weight: 700; border: none; background-color: #1565C0; color: #ffffff; cursor: pointer; }
         .tc-select { border: 2px solid #1565C0; padding: 0.4rem 1rem; border-radius: 8px; font-weight: bold; outline: none; cursor: pointer; }
@@ -168,7 +173,6 @@
                 const tc = this.tcList.find(t => t.id === this.currentTcId);
                 return tc ? tc.name : '';
             },
-            // 🌟 從 JSON 中動態讀取當前氣旋的 target_hours
             targetHours() {
                 const tc = this.tcList.find(t => t.id === this.currentTcId);
                 return (tc && tc.target_hours) ? tc.target_hours : [24, 48, 72, 96, 120];
@@ -176,7 +180,6 @@
             filteredForecastData() {
                 if (!this.forecastData || this.forecastData.length === 0) return [];
                 
-                // 使用從 JSON 讀取到的 targetHours
                 const allowedHours = this.targetHours;
                 
                 let baseDate = new Date();
