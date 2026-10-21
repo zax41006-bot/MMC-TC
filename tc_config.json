@@ -4,8 +4,8 @@
     "name": "薔琵",
     "lon_min": 105.0,
     "lon_max": 135.0,
-    "lat_min": 15.0,
-    "lat_max": 35.0,
+    "lat_min": 12.5,
+    "lat_max": 37.5,
     "target_hours": [24, 48, 72, 96, 120]
   }
 ]
