@@ -2,10 +2,10 @@
   {
     "id": "P",
     "name": "薔琵",
-    "lon_min": 100.0,
-    "lon_max": 180.0,
-    "lat_min": 0.0,
-    "lat_max": 60.0,
+    "lon_min": 105.0,
+    "lon_max": 135.0,
+    "lat_min": 15.0,
+    "lat_max": 45.0,
     "target_hours": [24, 48, 72, 96, 120]
   }
 ]
