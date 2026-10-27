@@ -67,12 +67,14 @@
 
         <div v-else>
             
+            <!-- 頭部資訊 (保持不變) -->
             <div class="bulletin-hero mb-6">
                 <div class="text-sm opacity-85">當前熱帶氣旋</div>
                 <div class="text-4xl font-black">{{ currentTcName }}</div>
                 <div class="mt-2 text-sm"><i class="fa-regular fa-clock mr-1"></i>{{ formatDateTime(currentData.datetime) }} 更新</div>
             </div>
 
+            <!-- 數據卡片 (保持不變) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-8">
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fa-solid fa-location-dot"></i></div>
@@ -98,8 +100,15 @@
                 </div>
             </div>
 
+            <!-- 🌟 調整順序 1：預報文字資訊 (放在最上方) -->
+            <div v-if="noticeText" class="bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6 mb-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-bullhorn text-blue-600 mr-2"></i>熱帶氣旋預報資訊</h3>
+                <div class="text-gray-700 leading-loose whitespace-pre-wrap font-medium">{{ noticeText }}</div>
+            </div>
+
+            <!-- 🌟 調整順序 2：路徑預報圖 (放在中間) -->
             <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6 mb-8">
-                <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-map-location-dot text-blue-600 mr-2"></i>路徑預報圖</h3>
+                <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-map-location-dot text-blue-600 mr-2"></i>熱帶氣旋路徑預報圖</h3>
                 <div class="relative w-full flex justify-center bg-gray-50 rounded-lg border border-gray-100 min-h-[300px]">
                     <img :src="plotImageSrc" class="max-w-full h-auto" @load="imgLoaded = true" @error="imgError = true" v-show="!imgError && imgLoaded">
                     <div v-if="imgError" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
@@ -112,8 +121,9 @@
                 </div>
             </div>
 
+            <!-- 🌟 調整順序 3：預報資訊表格 (改名並放在最下方) -->
             <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6 mb-8">
-                <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-table-list text-blue-600 mr-2"></i>預報詳細資訊</h3>
+                <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-table-list text-blue-600 mr-2"></i>熱帶氣旋路徑與強度預報表格</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-center border-collapse">
                         <thead>
@@ -135,12 +145,6 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
-
-            <!-- 🌟 新增：TXT 文字段落備註區塊 -->
-            <div v-if="noticeText" class="bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6 mb-8">
-                <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-bullhorn text-blue-600 mr-2"></i>預報文字資訊</h3>
-                <div class="text-gray-700 leading-loose whitespace-pre-wrap font-medium">{{ noticeText }}</div>
             </div>
 
         </div>
@@ -171,7 +175,7 @@
                 plotImageSrc: '', 
                 imgLoaded: false, 
                 imgError: false,
-                noticeText: '' // 🌟 用於儲存 TXT 檔案的文字內容
+                noticeText: ''
             };
         },
         
@@ -246,7 +250,7 @@
             
             async loadData() {
                 this.loading = true; this.error = ''; this.imgLoaded = false; this.imgError = false;
-                this.noticeText = ''; // 🌟 載入前先清空文字
+                this.noticeText = ''; 
                 
                 this.plotImageSrc = `./output/forecast_${this.currentTcId}.png?t=${new Date().getTime()}`;
                 
@@ -279,7 +283,6 @@
                         this.forecastData = [];
                     }
 
-                    // 🌟 讀取 TXT 文本 (優先讀取專屬 txt，若無則讀取通用 txt，並用 trim 避免空白)
                     try {
                         let textLoaded = false;
                         const tcNoticeRes = await fetch(`./notice_${this.currentTcId}.txt?t=${new Date().getTime()}`, { cache: 'no-store' });
