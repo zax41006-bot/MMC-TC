@@ -20,17 +20,16 @@
         .stat-label { font-size: 0.75rem; color: #6b7280; font-weight: 700; margin-bottom: 0.25rem; }
         .stat-value { font-size: 1.15rem; color: #1f2937; font-weight: 800; }
         
-        /* 🌟 修改：強度標籤顏色，已完全對齊 Python 繪圖的色碼 */
         .intensity-pill { display: inline-flex; padding: 0.3rem 0.8rem; border-radius: 9999px; font-weight: 800; color: #ffffff; }
-        .intensity-TD { background-color: #FAD02C; color: #1f2937; } /* 黃色 (加上深色字體) */
-        .intensity-TS { background-color: #0072C6; } /* 藍色 */
-        .intensity-STS { background-color: #00A651; } /* 綠色 */
-        .intensity-TY { background-color: #FF9900; } /* 橙色 */
-        .intensity-STY { background-color: #E60012; } /* 紅色 */
-        .intensity-SUTY { background-color: #7B1FA2; } /* 紫色 */
-        .intensity-LPA { background-color: #A0A0A0; } /* 灰色 */
-        .intensity-MD { background-color: #A0A0A0; } /* 灰色 */
-        .intensity-EX { background-color: #8D8D8D; color: #ffffff; } /* 深灰色 */
+        .intensity-TD { background-color: #FAD02C; color: #1f2937; }
+        .intensity-TS { background-color: #0072C6; }
+        .intensity-STS { background-color: #00A651; }
+        .intensity-TY { background-color: #FF9900; }
+        .intensity-STY { background-color: #E60012; }
+        .intensity-SUTY { background-color: #7B1FA2; }
+        .intensity-LPA { background-color: #A0A0A0; }
+        .intensity-MD { background-color: #A0A0A0; }
+        .intensity-EX { background-color: #8D8D8D; color: #ffffff; }
         
         .action-pill { display: inline-flex; align-items: center; padding: 0.65rem 1.4rem; border-radius: 9999px; font-weight: 700; border: none; background-color: #1565C0; color: #ffffff; cursor: pointer; }
         .tc-select { border: 2px solid #1565C0; padding: 0.4rem 1rem; border-radius: 8px; font-weight: bold; outline: none; cursor: pointer; }
@@ -113,7 +112,7 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6">
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6 mb-8">
                 <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-table-list text-blue-600 mr-2"></i>預報詳細資訊</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-center border-collapse">
@@ -137,6 +136,13 @@
                     </table>
                 </div>
             </div>
+
+            <!-- 🌟 新增：TXT 文字段落備註區塊 -->
+            <div v-if="noticeText" class="bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6 mb-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-bullhorn text-blue-600 mr-2"></i>預報文字資訊</h3>
+                <div class="text-gray-700 leading-loose whitespace-pre-wrap font-medium">{{ noticeText }}</div>
+            </div>
+
         </div>
 
         <div class="mt-10 mb-4 text-center">
@@ -164,7 +170,8 @@
                 forecastData: [], 
                 plotImageSrc: '', 
                 imgLoaded: false, 
-                imgError: false
+                imgError: false,
+                noticeText: '' // 🌟 用於儲存 TXT 檔案的文字內容
             };
         },
         
@@ -239,6 +246,7 @@
             
             async loadData() {
                 this.loading = true; this.error = ''; this.imgLoaded = false; this.imgError = false;
+                this.noticeText = ''; // 🌟 載入前先清空文字
                 
                 this.plotImageSrc = `./output/forecast_${this.currentTcId}.png?t=${new Date().getTime()}`;
                 
@@ -270,6 +278,32 @@
                     } else {
                         this.forecastData = [];
                     }
+
+                    // 🌟 讀取 TXT 文本 (優先讀取專屬 txt，若無則讀取通用 txt，並用 trim 避免空白)
+                    try {
+                        let textLoaded = false;
+                        const tcNoticeRes = await fetch(`./notice_${this.currentTcId}.txt?t=${new Date().getTime()}`, { cache: 'no-store' });
+                        if (tcNoticeRes.ok) {
+                            const text = await tcNoticeRes.text();
+                            if (text.trim()) {
+                                this.noticeText = text;
+                                textLoaded = true;
+                            }
+                        }
+                        
+                        if (!textLoaded) {
+                            const noticeRes = await fetch(`./notice.txt?t=${new Date().getTime()}`, { cache: 'no-store' });
+                            if (noticeRes.ok) {
+                                const text = await noticeRes.text();
+                                if (text.trim()) {
+                                    this.noticeText = text;
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.log("未找到 TXT 備註檔案，跳過顯示");
+                    }
+
                 } catch (e) {
                     this.error = e.message || '無法載入數據';
                 } finally {
