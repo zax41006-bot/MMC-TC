@@ -44,6 +44,10 @@ jobs:
         git add output/*.png
         if ! git diff --cached --quiet; then
           git commit -m "chore: auto-update all TC forecast plots [skip ci]"
+          
+          # 🌟 核心修改：推送到 GitHub 前，先拉取遠端的最新變更，避免衝突！
+          git pull --rebase origin main
+          
           git push
         else
           echo "No changes to commit"
