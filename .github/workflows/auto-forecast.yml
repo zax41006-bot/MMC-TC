@@ -7,6 +7,10 @@ on:
       - 'tc_config.json'
   workflow_dispatch: 
 
+# 🌟 給予機器人寫入權限，避免 push 失敗
+permissions:
+  contents: write
+
 jobs:
   build-and-plot:
     runs-on: ubuntu-latest
@@ -40,7 +44,7 @@ jobs:
         git add output/*.png
         if ! git diff --cached --quiet; then
           git commit -m "chore: auto-update all TC forecast plots [skip ci]"
-          git push --force
+          git push
         else
           echo "No changes to commit"
         fi
