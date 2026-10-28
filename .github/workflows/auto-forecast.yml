@@ -4,12 +4,19 @@ on:
   push:
     paths:
       - 'forecast_track_*.csv'
+      - 'notice_*.txt'      # 🌟 新增：TXT 更新也觸發
+      - 'notice.txt'        # 🌟 新增：通用 TXT 更新也觸發
       - 'tc_config.json'
   workflow_dispatch: 
 
-# 🌟 給予機器人寫入權限，避免 push 失敗
+# 🌟 給予機器人寫入權限
 permissions:
   contents: write
+
+# 🌟 防止同時觸發導致的衝突（排隊機制）
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-plot:
@@ -18,6 +25,18 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+
+    # 🌟 獲取本次 Push 到底改了哪些檔案
+    - name: Get changed files
+      run: |
+        if [ "${{ github.event_name }}" == "push" ]; then
+          git diff-tree --no-commit-id --name-only -r ${{ github.sha }} > changed_files.txt
+          echo "本次修改的檔案："
+          cat changed_files.txt
+        else
+          echo "manual" > changed_files.txt
+          echo "手動觸發，強制發送。"
+        fi
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -42,18 +61,20 @@ jobs:
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git add output/*.png
+        
         if ! git diff --cached --quiet; then
+          # 🌟 終極防衝突大法
+          git fetch origin main
+          git reset --soft origin/main
+          
+          git add output/*.png
           git commit -m "chore: auto-update all TC forecast plots [skip ci]"
-          
-          # 🌟 核心修改：推送到 GitHub 前，先拉取遠端的最新變更，避免衝突！
-          git pull --rebase origin main
-          
           git push
         else
           echo "No changes to commit"
         fi
 
-    # 🌟 自動發佈到 Telegram 的步驟
+    # 🌟 自動發佈到 Telegram (加入精準判斷)
     - name: Send TC forecast to Telegram
       env:
         BOT_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
@@ -65,6 +86,11 @@ jobs:
         token = os.environ['BOT_TOKEN']
         chat_id = os.environ['CHAT_ID']
         
+        with open('changed_files.txt', 'r') as f:
+            changed_files = f.read().strip().split('\n')
+            
+        is_manual = 'manual' in changed_files
+        
         with open('tc_config.json', 'r', encoding='utf-8-sig') as f:
             tc_list = json.load(f)
             
@@ -72,7 +98,19 @@ jobs:
             tc_id = tc['id']
             image_path = f'output/forecast_{tc_id}.png'
             notice_path = f'notice_{tc_id}.txt'
+            csv_path = f'forecast_track_{tc_id}.csv'
+            generic_notice = 'notice.txt'
             
+            # 🌟 核心判斷：如果是手動觸發，或者該氣旋的 CSV/TXT 有更新，才發送
+            need_send = is_manual
+            if not need_send:
+                if csv_path in changed_files or notice_path in changed_files or generic_notice in changed_files:
+                    need_send = True
+            
+            if not need_send:
+                print(f'[{tc_id}] CSV 或 TXT 未更新，跳過發送。')
+                continue
+                
             if not os.path.exists(image_path):
                 print(f'找不到圖片 {image_path}，跳過。')
                 continue
@@ -90,7 +128,7 @@ jobs:
                 files = {'photo': photo}
                 data = {'chat_id': chat_id, 'caption': caption}
                 resp = requests.post(url, files=files, data=data)
-                print(f'Telegram 發送狀態 ({tc_id}):', resp.status_code)
+                print(f'[{tc_id}] Telegram 發送狀態:', resp.status_code)
                 if resp.status_code != 200:
                     print(resp.text)
         "
