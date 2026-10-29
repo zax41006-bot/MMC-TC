@@ -4,16 +4,14 @@ on:
   push:
     paths:
       - 'forecast_track_*.csv'
-      - 'notice_*.txt'      # 🌟 新增：TXT 更新也觸發
-      - 'notice.txt'        # 🌟 新增：通用 TXT 更新也觸發
+      - 'notice_*.txt'
+      - 'notice.txt'
       - 'tc_config.json'
   workflow_dispatch: 
 
-# 🌟 給予機器人寫入權限
 permissions:
   contents: write
 
-# 🌟 防止同時觸發導致的衝突（排隊機制）
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -26,16 +24,15 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # 🌟 獲取本次 Push 到底改了哪些檔案
     - name: Get changed files
       run: |
         if [ "${{ github.event_name }}" == "push" ]; then
-          git diff-tree --no-commit-id --name-only -r ${{ github.sha }} > changed_files.txt
-          echo "本次修改的檔案："
+          git show --pretty="" --name-only ${{ github.sha }} > changed_files.txt
+          echo "📁 本次修改的檔案清單："
           cat changed_files.txt
         else
           echo "manual" > changed_files.txt
-          echo "手動觸發，強制發送。"
+          echo "👆 手動觸發，強制發送。"
         fi
 
     - name: Set up Python
@@ -63,10 +60,8 @@ jobs:
         git add output/*.png
         
         if ! git diff --cached --quiet; then
-          # 🌟 終極防衝突大法
           git fetch origin main
           git reset --soft origin/main
-          
           git add output/*.png
           git commit -m "chore: auto-update all TC forecast plots [skip ci]"
           git push
@@ -74,20 +69,20 @@ jobs:
           echo "No changes to commit"
         fi
 
-    # 🌟 自動發佈到 Telegram (加入精準判斷)
+    # 🌟 真正的超級除錯版 Telegram 發送
     - name: Send TC forecast to Telegram
       env:
         BOT_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
         CHAT_ID: ${{ secrets.TELEGRAM_TO }}
       run: |
-        python -c "
-        import requests, json, os
+        cat << 'EOF' > send_tg.py
+        import requests, json, os, sys
         
         token = os.environ['BOT_TOKEN']
         chat_id = os.environ['CHAT_ID']
         
         with open('changed_files.txt', 'r') as f:
-            changed_files = f.read().strip().split('\n')
+            changed_files = [line.strip() for line in f if line.strip()]
             
         is_manual = 'manual' in changed_files
         
@@ -101,19 +96,18 @@ jobs:
             csv_path = f'forecast_track_{tc_id}.csv'
             generic_notice = 'notice.txt'
             
-            # 🌟 核心判斷：如果是手動觸發，或者該氣旋的 CSV/TXT 有更新，才發送
             need_send = is_manual
             if not need_send:
                 if csv_path in changed_files or notice_path in changed_files or generic_notice in changed_files:
                     need_send = True
             
             if not need_send:
-                print(f'[{tc_id}] CSV 或 TXT 未更新，跳過發送。')
+                print(f'[{tc_id}] 判斷 CSV 或 TXT 無更新，跳過發送。')
                 continue
                 
             if not os.path.exists(image_path):
-                print(f'找不到圖片 {image_path}，跳過。')
-                continue
+                print(f'❌ [{tc_id}] 找不到圖片 {image_path}，中斷程式！')
+                sys.exit(1) # 🔥 強制報錯
                 
             caption = ''
             if os.path.exists(notice_path):
@@ -122,13 +116,22 @@ jobs:
             elif os.path.exists('notice.txt'):
                 with open('notice.txt', 'r', encoding='utf-8') as nf:
                     caption = nf.read()
+            
+            if len(caption) > 1000:
+                caption = caption[:1000] + '\n...(內容過長已截斷)'
                     
             url = f'https://api.telegram.org/bot{token}/sendPhoto'
             with open(image_path, 'rb') as photo:
                 files = {'photo': photo}
                 data = {'chat_id': chat_id, 'caption': caption}
+                print(f'🚀 [{tc_id}] 正在發送到 Telegram (目標: {chat_id})...')
                 resp = requests.post(url, files=files, data=data)
-                print(f'[{tc_id}] Telegram 發送狀態:', resp.status_code)
+                
                 if resp.status_code != 200:
-                    print(resp.text)
-        "
+                    print(f'❌ [{tc_id}] Telegram 拒絕發送！狀態碼: {resp.status_code}')
+                    print(f'📄 錯誤詳情: {resp.text}')
+                    sys.exit(1) # 🔥 強制報錯
+                else:
+                    print(f'✅ [{tc_id}] Telegram 發送成功！')
+        EOF
+        python send_tg.py
